@@ -9,16 +9,20 @@ import service.idm.models.RegisterResponseModel;
 import service.idm.security.Crypto;
 import service.idm.utilities.ByteToString;
 import service.idm.utilities.ModelValidator;
+import service.idm.utilities.Transactions;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 @Path("register")
 public class Register {
@@ -26,15 +30,17 @@ public class Register {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     /*** Registers a user on success. If failed ModelValidationException is thrown***/
-    public Response registerUser(String json)
+    public Response registerUser(String json, @Context HttpHeaders headers)
     {
         try {
+            //Grab ip address of user
+            String ipAdd = headers.getHeaderString("ipAddress");
             //Check if JSON Model is correct
             RegisterRequestModel requestModel = (RegisterRequestModel) ModelValidator.verifyModel(json,RegisterRequestModel.class);
             //Checks if User input is correct
             ModelValidator.verifyInfo(requestModel.getEmail(),requestModel.getPassword());
 
-            Response response = returnResponse(requestModel.getEmail(),requestModel.getPassword());
+            Response response = returnResponse(requestModel.getEmail(),requestModel.getPassword(),ipAdd);
             return response;
         } catch (ModelValidationException e) {
             e.printStackTrace();
@@ -46,13 +52,15 @@ public class Register {
 
     }
 
-    private Response returnResponse(String email, char[] password) throws SQLException {
+    private Response returnResponse(String email, char[] password, String ipAddr) throws SQLException {
         RegisterResponseModel responseModel;
 
         if(checkDupUser(email) == true)
         {
             responseModel = new RegisterResponseModel(16,
                     "Email already in use");
+            Transactions.insertTransaction(ipAddr,new Timestamp(System.currentTimeMillis()));
+
             return Response.status(Response.Status.OK).entity(responseModel).build();
         }
         else
@@ -60,6 +68,8 @@ public class Register {
             insertUser(email, password);
             responseModel = new RegisterResponseModel(110,
                     "User registered successfully");
+            Transactions.insertTransaction(ipAddr,new Timestamp(System.currentTimeMillis()));
+
             return Response.status(Response.Status.OK).entity(responseModel).build();
         }
     }
