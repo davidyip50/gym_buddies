@@ -44,6 +44,31 @@ public class ModelValidator {
         }
     }
 
+    public static void verifyInfo(String email) throws ModelValidationException {
+        String warning;
+
+        try {
+            Checker.checkUserInfo(email);
+        } catch (InvalidEmailInput e) {
+            warning = "Email address has invalid format.";
+            throw new ModelValidationException(warning, e);
+        } catch (InvalidEmailLength e) {
+            warning = "Email address has invalid length";
+            throw new ModelValidationException(warning, e);
+        }
+    }
+
+    public static void verifySessionID(String sessionID) throws ModelValidationException {
+        String warning;
+
+        try {
+            Checker.checkSession(sessionID);
+        } catch (InvalidSessionLength e) {
+            warning = "Token has invalid length";
+            throw new ModelValidationException(warning, e);
+        }
+    }
+
     public static Model verifyModel(String jsonText, Class modelType) throws ModelValidationException {
         ServiceLogger.LOGGER.info("Verifying model format...");
         ObjectMapper mapper = new ObjectMapper();
@@ -105,6 +130,11 @@ public class ModelValidator {
             else if (e.getCause() instanceof InvalidPasswordRequirements) {
                 object = constructor.newInstance(PASSWORD_INSUFFICIENT_CHARS,ResultCodes.setMessage(PASSWORD_INSUFFICIENT_CHARS));
                 resultCode = PASSWORD_INSUFFICIENT_CHARS;
+            }
+            else if(e.getCause() instanceof InvalidSessionLength)
+            {
+                object = constructor.newInstance(TOKEN_INVALID_LENGTH,ResultCodes.setMessage(TOKEN_INVALID_LENGTH));
+                resultCode = TOKEN_INVALID_LENGTH;
             }
             else {
                 object = constructor.newInstance(INTERNAL_SERVER_ERROR,ResultCodes.setMessage(INTERNAL_SERVER_ERROR));

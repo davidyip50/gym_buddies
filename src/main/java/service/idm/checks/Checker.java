@@ -1,6 +1,9 @@
 package service.idm.checks;
 
 import service.idm.exceptions.*;
+import service.idm.models.VerifySessionResponseModel;
+
+import javax.ws.rs.core.Response;
 
 public class Checker {
     public static void checkUserInfo(String email, char[] password) throws InvalidEmailInput, InvalidEmailLength, EmptyPassword, InvalidPasswordLength, InvalidPasswordRequirements {
@@ -24,6 +27,25 @@ public class Checker {
         else if(checkPassword(password) == false)
         {
             throw new InvalidPasswordRequirements();
+        }
+    }
+
+    public static void checkUserInfo(String email) throws InvalidEmailInput, InvalidEmailLength {
+        boolean isEmailValid = email.matches("^.+@.+\\..+");
+        if(!isEmailValid)
+        {
+            throw new InvalidEmailInput();
+        }
+        if( email.length() > 50 || email.length() == 0 )
+        {
+            throw new InvalidEmailLength();
+        }
+    }
+
+    public static void checkSession(String sessionID) throws InvalidSessionLength {
+        if(sessionID.length() == 0 || sessionID.length() > 128)
+        {
+            throw new InvalidSessionLength();
         }
     }
 
