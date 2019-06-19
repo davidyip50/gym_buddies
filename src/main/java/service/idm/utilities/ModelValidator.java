@@ -69,6 +69,17 @@ public class ModelValidator {
         }
     }
 
+    public static void verifyPrivilegeInput(int plevel) throws ModelValidationException {
+        String warning;
+
+        try {
+            Checker.checkPrivilege(plevel);
+        } catch (InvalidPrivilegeInput e) {
+            warning = "Privilege level out of valid range.";
+            throw new ModelValidationException(warning, e);
+        }
+    }
+
     public static Model verifyModel(String jsonText, Class modelType) throws ModelValidationException {
         ServiceLogger.LOGGER.info("Verifying model format...");
         ObjectMapper mapper = new ObjectMapper();
@@ -135,6 +146,11 @@ public class ModelValidator {
             {
                 object = constructor.newInstance(TOKEN_INVALID_LENGTH,ResultCodes.setMessage(TOKEN_INVALID_LENGTH));
                 resultCode = TOKEN_INVALID_LENGTH;
+            }
+            else if(e.getCause() instanceof InvalidPrivilegeInput)
+            {
+                object = constructor.newInstance(PRIVILEGE_LEVEL_OUT_OF_RANGE,ResultCodes.setMessage(PRIVILEGE_LEVEL_OUT_OF_RANGE));
+                resultCode = PRIVILEGE_LEVEL_OUT_OF_RANGE;
             }
             else {
                 object = constructor.newInstance(INTERNAL_SERVER_ERROR,ResultCodes.setMessage(INTERNAL_SERVER_ERROR));

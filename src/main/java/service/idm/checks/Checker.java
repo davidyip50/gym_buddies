@@ -1,6 +1,7 @@
 package service.idm.checks;
 
 import service.idm.exceptions.*;
+import service.idm.models.VerifyPrivilegeResponseModel;
 import service.idm.models.VerifySessionResponseModel;
 
 import javax.ws.rs.core.Response;
@@ -46,6 +47,13 @@ public class Checker {
         if(sessionID.length() == 0 || sessionID.length() > 128)
         {
             throw new InvalidSessionLength();
+        }
+    }
+
+    public static void checkPrivilege(int plevel) throws InvalidPrivilegeInput {
+        if(plevel > 5 || plevel < 1)
+        {
+            throw new InvalidPrivilegeInput();
         }
     }
 
