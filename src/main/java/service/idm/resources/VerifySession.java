@@ -89,7 +89,7 @@ public class VerifySession {
             if(rs.next())
             {
                 //used for testing
-
+                //testVerify(sessionID);
                 Timestamp timeCreated = rs.getTimestamp("timeCreated");
                 Timestamp lastUsed = rs.getTimestamp("lastUsed");
                 Timestamp exprTime = rs.getTimestamp("exprTime");
@@ -116,7 +116,7 @@ public class VerifySession {
                         //insert a new session
                         insertNewSession(newSession);
                         responseModel = new VerifySessionResponseModel( 133,
-                                "Session is revoked", newSession.toString());
+                                "Session is revoked", newSession.getSessionID().toString());
                         Transactions.insertTransaction(ipAddr,new Timestamp(System.currentTimeMillis()));
 
                         return Response.status(Response.Status.OK).entity(responseModel).build();
