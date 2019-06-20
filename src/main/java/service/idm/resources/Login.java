@@ -101,6 +101,7 @@ public class Login {
                     //return OK to client
                     resetUserCount(email);
                     Transactions.insertTransaction(ses.getSessionID().toString(),ipAddr,new Timestamp(System.currentTimeMillis()));
+                    Transactions.insertLocation(Transactions.getLocation(ipAddr),email);
                     return Response.status(Response.Status.OK).entity(responseModel).build();
                 }
                 else

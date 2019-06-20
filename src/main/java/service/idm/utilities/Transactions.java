@@ -93,7 +93,7 @@ public class Transactions {
 
         if(rs.next())
         {
-            if(rs.getInt("count(*)") >= 0)
+            if(rs.getInt("count(*)") > 0)
             {
                 return;
             }
@@ -144,6 +144,34 @@ public class Transactions {
         ps.setString(12, lat);
         ps.setString(13, lon);
         ps.execute();
+    }
 
+    public static String getLocation(String ip) throws SQLException {
+        String query = "SELECT city\n" +
+                "FROM locations\n" +
+                "where ip = ?";
+        PreparedStatement ps = IDMService.getCon().prepareStatement(query);
+        ps.setString(1,ip);
+        ResultSet rs = ps.executeQuery();
+
+        if(rs.next())
+        {
+            return rs.getString("city");
+        }
+        else {
+            return null;
+        }
+    }
+
+    public static void insertLocation(String location, String email) throws SQLException {
+        String query = "UPDATE users\n" +
+                "SET location = ?\n" +
+                "where email = ?";
+
+        PreparedStatement ps = IDMService.getCon().prepareStatement(query);
+
+        ps.setString(1,location);
+        ps.setString(2, email);
+        ps.executeUpdate();
     }
 }

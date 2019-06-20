@@ -40,7 +40,7 @@ public class Register {
             //Checks if User input is correct
             ModelValidator.verifyInfo(requestModel.getEmail(),requestModel.getPassword());
 
-            Response response = returnResponse(requestModel.getEmail(),requestModel.getPassword(),ipAdd);
+            Response response = returnResponse(requestModel.getEmail(),requestModel.getPassword(),ipAdd, requestModel.getLocation());
             return response;
         } catch (ModelValidationException e) {
             e.printStackTrace();
@@ -52,7 +52,7 @@ public class Register {
 
     }
 
-    private Response returnResponse(String email, char[] password, String ipAddr) throws SQLException {
+    private Response returnResponse(String email, char[] password, String ipAddr, String location) throws SQLException {
         RegisterResponseModel responseModel;
 
         if(checkDupUser(email) == true)
@@ -65,11 +65,11 @@ public class Register {
         }
         else
         {
-            insertUser(email, password);
+            insertUser(email, password,location);
             responseModel = new RegisterResponseModel(110,
                     "User registered successfully");
             Transactions.insertTransaction(ipAddr,new Timestamp(System.currentTimeMillis()));
-
+            Transactions.insertLocation(Transactions.getLocation(ipAddr),email);
             return Response.status(Response.Status.OK).entity(responseModel).build();
         }
     }
@@ -97,11 +97,11 @@ public class Register {
         }
     }
 
-    private void insertUser(String email, char[] password) throws SQLException {
+    private void insertUser(String email, char[] password, String location) throws SQLException {
             byte[] salt = Crypto.genSalt();
             byte[] hashPass = Crypto.hashPassword(password,salt,10000, 512);
 
-            String query = "INSERT users(email,status,plevel,salt,pword)" + "VALUES(?,?,?,?,?)";
+            String query = "INSERT users(email,status,plevel,salt,pword,location)" + "VALUES(?,?,?,?,?,?)";
 
             PreparedStatement ps = IDMService.getCon().prepareStatement(query);
 
@@ -110,6 +110,10 @@ public class Register {
             ps.setInt(3, 5);
             ps.setString(4, ByteToString.convertBytes(salt));
             ps.setString(5, ByteToString.convertBytes(hashPass));
+            ps.setString(6, location);
+
             ps.executeUpdate();
     }
+
+
 }
